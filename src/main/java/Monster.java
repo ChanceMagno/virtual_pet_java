@@ -1,6 +1,7 @@
 import org.sql2o.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.sql.Timestamp;
 
 public class Monster {
   private int personId;
@@ -9,6 +10,10 @@ public class Monster {
   private int foodLevel;
   private int sleepLevel;
   private int playLevel;
+  private Timestamp birthday;
+  private Timestamp lastSlept;
+  private Timestamp lastAte;
+  private Timestamp lastPlayed;
 
   public static final int MAX_FOOD_LEVEL = 3;
   public static final int MAX_SLEEP_LEVEL = 8;
@@ -21,6 +26,7 @@ public class Monster {
     playLevel = MAX_PLAY_LEVEL / 2;
     sleepLevel = MAX_SLEEP_LEVEL / 2;
     foodLevel = MAX_FOOD_LEVEL / 3;
+
   }
 
   public int getPlayLevel() {
@@ -47,6 +53,10 @@ public class Monster {
     return id;
   }
 
+  public Timestamp getBirthday() {
+    return birthday;
+  }
+
   public boolean isAlive() {
     if (foodLevel <= MIN_ALL_LEVELS  ||
     playLevel <= MIN_ALL_LEVELS ||
@@ -70,17 +80,6 @@ public class Monster {
       Monster newMonster = (Monster) otherMonster;
       return this.getName().equals(newMonster.getName()) &&
              this.getPersonId() == newMonster.getPersonId();
-    }
-  }
-
-  public void save() {
-    try(Connection con = DB.sql2o.open()) {
-      String sql = "INSERT INTO monsters (name, personid) VALUES (:name, :personId)";
-      this.id = (int) con.createQuery(sql, true)
-        .addParameter("name", this.name)
-        .addParameter("personId", this.personId)
-        .executeUpdate()
-        .getKey();
     }
   }
 
@@ -121,6 +120,17 @@ public class Monster {
       throw new UnsupportedOperationException("You cannot play with monster anymore!");
     }
     playLevel++;
+  }
+
+  public void save() {
+    try(Connection con = DB.sql2o.open()) {
+      String sql = "INSERT INTO monsters (name, personId, birthday) VALUES (:name, :personId, now())";
+      this.id = (int) con.createQuery(sql, true)
+        .addParameter("name", this.name)
+        .addParameter("personId", this.personId)
+        .executeUpdate()
+        .getKey();
+    }
   }
 
 }
