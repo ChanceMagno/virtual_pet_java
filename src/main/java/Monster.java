@@ -5,33 +5,24 @@ import java.sql.Timestamp;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class Monster {
-  private int personId;
-  private String name;
-  private int id;
-  private int foodLevel;
-  private int sleepLevel;
-  private int playLevel;
-  private Timestamp birthday;
-  private Timestamp lastSlept;
-  private Timestamp lastAte;
-  private Timestamp lastPlayed;
-  private Timer timer;
+public abstract class Monster {
+  public int personId;
+  public String name;
+  public int id;
+  public int foodLevel;
+  public int sleepLevel;
+  public int playLevel;
+  public Timestamp birthday;
+  public Timestamp lastSlept;
+  public Timestamp lastAte;
+  public Timestamp lastPlayed;
+  public Timer timer;
+  public String type;
 
   public static final int MAX_FOOD_LEVEL = 3;
   public static final int MAX_SLEEP_LEVEL = 8;
   public static final int MAX_PLAY_LEVEL = 12;
   public static final int MIN_ALL_LEVELS = 0;
-
-  public Monster(String name, int personId) {
-    this.name = name;
-    this.personId = personId;
-    playLevel = MAX_PLAY_LEVEL / 2;
-    sleepLevel = MAX_SLEEP_LEVEL / 2;
-    foodLevel = MAX_FOOD_LEVEL / 3;
-    timer = new Timer();
-
-  }
 
   public int getPlayLevel() {
     return playLevel;
@@ -79,7 +70,7 @@ public class Monster {
       playLevel--;
       foodLevel--;
       sleepLevel--;
-    }  
+    }
   }
 
   public Timestamp getLastSlept(){
@@ -101,14 +92,14 @@ public class Monster {
     }
   }
 
-  public static List<Monster> all() {
+  public static List<Monster> allMonsters() {
     String sql = "SELECT * FROM monsters";
     try(Connection con = DB.sql2o.open()) {
       return con.createQuery(sql).executeAndFetch(Monster.class);
     }
   }
 
-  public static Monster find(int id) {
+  public static Monster findAnyMonsters(int id) {
     try(Connection con = DB.sql2o.open()) {
       String sql = "SELECT * FROM monsters where id=:id";
       Monster monster = con.createQuery(sql)
@@ -133,10 +124,11 @@ public class Monster {
 
   public void save() {
     try(Connection con = DB.sql2o.open()) {
-      String sql = "INSERT INTO monsters (name, personId, birthday) VALUES (:name, :personId, now())";
+      String sql = "INSERT INTO monsters (name, personId, birthday, type) VALUES (:name, :personId, now(), :type)";
       this.id = (int) con.createQuery(sql, true)
         .addParameter("name", this.name)
         .addParameter("personId", this.personId)
+        .addParameter("type", this.type)
         .executeUpdate()
         .getKey();
     }
